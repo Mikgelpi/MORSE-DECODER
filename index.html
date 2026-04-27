@@ -24,21 +24,21 @@
     color:var(--silk);
     min-height:100vh;
     display:flex;flex-direction:column;align-items:center;
-    padding:12px 4px 40px;overflow-x:hidden;
+    padding:8px 4px 16px;overflow-x:hidden;
   }
-  header{text-align:center;margin-bottom:14px}
+  header{text-align:center;margin-bottom:8px}
   h1{
     font-family:'Major Mono Display',monospace;
-    font-size:clamp(20px,5vw,30px);letter-spacing:.15em;
+    font-size:clamp(18px,3vw,24px);letter-spacing:.15em;
     color:var(--gold-bright);text-shadow:0 0 20px rgba(244,210,122,.3);
   }
-  .sub{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#8aa390;margin-top:6px}
+  .sub{font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#8aa390;margin-top:4px}
 
   .pcb{
     position:relative;
     width:100%;
-    max-width:720px;
-    aspect-ratio:560/700;
+    max-width:580px;
+    aspect-ratio:560/540;
     flex-shrink:0;
     background:
       radial-gradient(circle at 30% 20%,rgba(255,255,255,.04) 0%,transparent 40%),
@@ -57,11 +57,20 @@
     background-size:10px 10px;pointer-events:none;
   }
   .pcb::after{
-    content:"";position:absolute;top:14px;right:14px;
+    content:"";position:absolute;bottom:14px;right:14px;
     width:20px;height:20px;border-radius:50%;
     background:radial-gradient(circle,#3a2810 30%,#0a0604 60%);
     box-shadow:inset 0 0 3px rgba(0,0,0,.9),0 0 0 1.5px var(--gold);
     z-index:2;
+    transition:all .05s ease;
+  }
+  .pcb.echo::after{
+    background:radial-gradient(circle,var(--led-hot) 20%,#8a2010 70%);
+    box-shadow:
+      inset 0 0 3px rgba(0,0,0,.5),
+      0 0 0 1.5px var(--gold-bright),
+      0 0 12px var(--led-hot),
+      0 0 24px var(--led-hot);
   }
   svg.board{width:100%;height:100%;display:block}
 
@@ -93,21 +102,21 @@
     filter:drop-shadow(0 0 4px var(--gold-bright));
   }
 
-  .controls{width:100%;max-width:720px;margin-top:18px;display:flex;flex-direction:column;gap:12px;padding:0 6px}
+  .controls{width:100%;max-width:580px;margin-top:12px;display:flex;flex-direction:column;gap:8px;padding:0 6px}
   .display{
     background:#080c08;border:1px solid #1f3a26;border-radius:8px;
-    padding:10px 12px;min-height:68px;
+    padding:8px 12px;min-height:54px;
     box-shadow:inset 0 2px 8px rgba(0,0,0,.6);
   }
-  .display-label{font-size:9px;letter-spacing:.25em;color:#5a7a65;text-transform:uppercase;margin-bottom:4px}
+  .display-label{font-size:9px;letter-spacing:.25em;color:#5a7a65;text-transform:uppercase;margin-bottom:3px}
   .morse-out{
-    color:var(--gold-bright);font-size:18px;letter-spacing:.15em;
-    min-height:26px;word-break:break-all;
+    color:var(--gold-bright);font-size:16px;letter-spacing:.15em;
+    min-height:22px;word-break:break-all;
     text-shadow:0 0 8px rgba(244,210,122,.4);
   }
   .text-out{
-    color:var(--led-on);font-size:15px;letter-spacing:.1em;
-    margin-top:4px;min-height:20px;font-weight:600;word-break:break-all;
+    color:var(--led-on);font-size:14px;letter-spacing:.1em;
+    margin-top:3px;min-height:18px;font-weight:600;word-break:break-all;
   }
   .current{
     display:inline-block;background:rgba(124,255,90,.15);
@@ -117,21 +126,21 @@
 
   .key-wrap{display:flex;gap:10px;align-items:stretch}
   .telegraph{
-    flex:1;position:relative;height:80px;
+    flex:1;position:relative;height:62px;
     background:linear-gradient(180deg,#2a2520 0%,#0e0d0a 100%);
     border:1px solid #3a3228;border-radius:10px;
     cursor:pointer;user-select:none;-webkit-user-select:none;
     -webkit-tap-highlight-color:transparent;overflow:hidden;touch-action:none;
   }
   .telegraph::before{
-    content:"";position:absolute;left:14px;top:50%;
-    transform:translateY(-50%);width:40px;height:40px;border-radius:50%;
+    content:"";position:absolute;left:12px;top:50%;
+    transform:translateY(-50%);width:32px;height:32px;border-radius:50%;
     background:radial-gradient(circle at 35% 30%,#4a4035 0%,#1a1612 70%);
     box-shadow:inset 0 -2px 6px rgba(0,0,0,.8),0 2px 3px rgba(0,0,0,.5);
   }
   .telegraph-bar{
-    position:absolute;left:48px;top:50%;transform:translateY(-50%);
-    right:12px;height:13px;
+    position:absolute;left:42px;top:50%;transform:translateY(-50%);
+    right:12px;height:11px;
     background:linear-gradient(180deg,#c9a76a 0%,#8a6a35 50%,#5a4222 100%);
     border-radius:3px;
     box-shadow:inset 0 1px 0 rgba(255,220,160,.5),inset 0 -1px 2px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.6);
@@ -170,7 +179,7 @@
   }
   .slider-row input[type=range]{flex:1;accent-color:var(--gold-bright)}
   .slider-row b{color:var(--gold-bright);min-width:48px;text-align:right}
-  footer{margin-top:18px;font-size:9px;letter-spacing:.3em;color:#3a5a45;text-transform:uppercase}
+  footer{margin-top:10px;font-size:8px;letter-spacing:.3em;color:#3a5a45;text-transform:uppercase}
 </style>
 </head>
 <body>
@@ -188,7 +197,7 @@
          col4=225 (A), col5=275 (R rect), col6=335 (L/P/J column)
          top row uses: 60, 115, 170, 240, 285, 330, 375
   -->
-  <svg class="board" viewBox="0 0 560 700" preserveAspectRatio="xMidYMid meet">
+  <svg class="board" viewBox="0 0 560 540" preserveAspectRatio="xMidYMid meet">
 
     <!-- ANTENNA sopra la top row (r1=55) -->
     <g class="antenna">
@@ -226,13 +235,20 @@
   </div>
 
   <div class="slider-row">
-    <span>speed</span>
-    <input type="range" id="speedSlider" min="150" max="500" step="10" value="280">
-    <b><span id="speedVal">280</span>ms</b>
+    <span>tap</span>
+    <input type="range" id="speedSlider" min="100" max="400" step="10" value="180">
+    <b><span id="speedVal">180</span>ms</b>
+  </div>
+
+  <div class="slider-row">
+    <span>pausa</span>
+    <input type="range" id="gapSlider" min="500" max="4000" step="100" value="700">
+    <b><span id="gapVal">700</span>ms</b>
   </div>
 
   <div class="info">
     Tieni premuto il <b>tasto</b> o <kbd>SPACE</kbd>. Tap breve = <b>·</b>, lungo = <b>−</b>.<br>
+    <b>tap</b> = soglia punto/linea · <b>pausa</b> = tempo prima di chiudere la lettera<br>
     <b>␣ SPC</b> = spazio parola · <b>⌫ DEL</b> = cancella ultimo · <b>✕ CLR</b> = reset
   </div>
 </div>
@@ -246,7 +262,7 @@
    Righe Y:     r1=85  r2=150  r3=215  r4=280  r5=345  r6=410  r7=475
 */
 const CX={c1:50, c2:130, c3:210, c4:290, c5:370, c6:450, c7:520};
-const RY={r1:55, r2:155, r3:255, r4:355, r5:455, r6:555, r7:655};
+const RY={r1:50, r2:125, r3:200, r4:275, r5:350, r6:425, r7:500};
 
 const N=[];
 function add(ch,path,x,y,shape,sub){
@@ -267,35 +283,35 @@ const S=add('S','...',   CX.c6, RY.r1,'circle'); // ... dot → circle
 const H=add('H','....',  CX.c7, RY.r1,'circle'); // .... dot → circle
 
 // === ROW 2 — y=150 ===
-const Q=add('Q','--.-',  CX.c1, RY.r2,'rect','Q');   // --.- dash → rect
-const G=add('G','--.',   CX.c2, RY.r2,'circle');     // --. dot → circle
-const U=add('U','..-',   CX.c5, RY.r2,'rect');       // ..- dash → rect
-const V=add('V','...-',  CX.c6, RY.r2,'rect');       // ...- dash → rect
+const Q=add('Q','--.-',  CX.c1, RY.r2,'rect');
+const G=add('G','--.',   CX.c2, RY.r2,'circle');
+const U=add('U','..-',   CX.c5, RY.r2,'rect');
+const V=add('V','...-',  CX.c6, RY.r2,'rect');
 
 // === ROW 3 — y=215 ===
-const Z=add('Z','--..',  CX.c2, RY.r3,'circle');     // --.. dot → circle
-const F=add('F','..-.',  CX.c5, RY.r3,'circle');     // ..-. dot → circle
+const Z=add('Z','--..',  CX.c2, RY.r3,'circle');
+const F=add('F','..-.',  CX.c5, RY.r3,'circle');
 
 // === ROW 4 — y=280 ===
-const Y=add('Y','-.--',  CX.c1, RY.r4,'rect');       // -.-- dash → rect
-const K=add('K','-.-',   CX.c2, RY.r4,'rect');       // -.- dash → rect
-const N_=add('N','-.',   CX.c3, RY.r4,'circle');     // -. dot → circle (LED verde)
-const A=add('A','.-',    CX.c4, RY.r4,'rect','A');   // .- dash → rect
-const R=add('R','.-.',   CX.c5, RY.r4,'circle','R'); // .-. dot → circle
-const L=add('L','.-..',  CX.c6, RY.r4,'circle');     // .-.. dot → circle
+const Y=add('Y','-.--',  CX.c1, RY.r4,'rect');
+const K=add('K','-.-',   CX.c2, RY.r4,'rect');
+const N_=add('N','-.',   CX.c3, RY.r4,'circle');
+const A=add('A','.-',    CX.c4, RY.r4,'rect');
+const R=add('R','.-.',   CX.c5, RY.r4,'circle');
+const L=add('L','.-..',  CX.c6, RY.r4,'circle');
 
 // === ROW 5 — y=345 ===
-const C=add('C','-.-.',  CX.c2, RY.r5,'circle');     // -.-. dot → circle
+const C=add('C','-.-.',  CX.c2, RY.r5,'circle');
 
 // === ROW 6 — y=410 ===
-const X=add('X','-..-',  CX.c2, RY.r6,'rect');       // -..- dash → rect
-const D=add('D','-..',   CX.c3, RY.r6,'circle','D'); // -.. dot → circle
-const W=add('W','.--',   CX.c4, RY.r6,'rect','W');   // .-- dash → rect
-const P=add('P','.--.',  CX.c5, RY.r6,'circle');     // .--. dot → circle
+const X=add('X','-..-',  CX.c2, RY.r6,'rect');
+const D=add('D','-..',   CX.c3, RY.r6,'circle');
+const W=add('W','.--',   CX.c4, RY.r6,'rect');
+const P=add('P','.--.',  CX.c5, RY.r6,'circle');
 
 // === ROW 7 — y=475 ===
 const B=add('B','-...',  CX.c3, RY.r7,'circle');     // -... dot → circle
-const J=add('J','.---',  CX.c5, RY.r7,'rect');       // .--- dash → rect
+const J=add('J','.---',  CX.c4, RY.r7,'rect');       // .--- dash → rect (sotto W)
 
 
 // ================= TRACES (orthogonal) =================
@@ -347,7 +363,7 @@ seg(R,L,'H');
 seg(A,W,'V');
 // W branch: P a destra, J giù da P
 seg(W,P,'H');
-seg(P,J,'V');
+seg(W,J,'V');
 
 // I branch: U dritto sotto (stessa colonna c5)
 seg(I,U,'V');
@@ -396,7 +412,8 @@ N.forEach(renderPad);
 
 // ================= STATE =================
 const STATE={
-  dotMs:280,     // più lento di default
+  dotMs:180,
+  gapMs:700,
   pressStart:0, currentSig:'', output:'', fullMorse:'',
   letterTimer:null
 };
@@ -408,6 +425,13 @@ const speedVal=document.getElementById('speedVal');
 speedSlider.addEventListener('input',()=>{
   STATE.dotMs=parseInt(speedSlider.value);
   speedVal.textContent=STATE.dotMs;
+});
+
+const gapSlider=document.getElementById('gapSlider');
+const gapVal=document.getElementById('gapVal');
+gapSlider.addEventListener('input',()=>{
+  STATE.gapMs=parseInt(gapSlider.value);
+  gapVal.textContent=STATE.gapMs;
 });
 
 function findByPath(p){return N.find(n=>n.path===p)||null}
@@ -473,19 +497,22 @@ let pressed=false;
 function onPress(){
   if(pressed) return;
   pressed=true; keyEl.classList.add('pressed');
+  document.querySelector('.pcb').classList.add('echo');
   STATE.pressStart=performance.now();
   clearTimeout(STATE.letterTimer);
   toneStart();
 }
 function onRelease(){
   if(!pressed) return;
-  pressed=false; keyEl.classList.remove('pressed'); toneStop();
+  pressed=false; keyEl.classList.remove('pressed');
+  document.querySelector('.pcb').classList.remove('echo');
+  toneStop();
   const dur=performance.now()-STATE.pressStart;
   STATE.currentSig += (dur<STATE.dotMs*2)?'.':'-';
   if(findByPath(STATE.currentSig)) highlightPath(STATE.currentSig);
   else clearHL();
   updateDisplay();
-  STATE.letterTimer=setTimeout(commitLetter,STATE.dotMs*5);
+  STATE.letterTimer=setTimeout(commitLetter,STATE.gapMs);
   // Spazio tra parole SOLO con pulsante SPC, non più automatico
 }
 
