@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morse Code Decoder — PCB Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Major+Mono+Display&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pcb-dark:#0a0f0a;
+    --gold:#d4a84b; --gold-bright:#f4d27a; --copper:#b8893a;
+    --silk:#e8e4d0;
+    --led-on:#7cff5a; --led-hot:#ff4d2e; --led-glow:#b8ff9c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'JetBrains Mono',monospace;
+    background:
+      radial-gradient(ellipse at 20% 10%, #1a2a1a 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 90%, #0a1a14 0%, transparent 50%),
+      #060a07;
+    color:var(--silk);
+    min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;
+    padding:12px 4px 40px;overflow-x:hidden;
+  }
+  header{text-align:center;margin-bottom:14px}
+  h1{
+    font-family:'Major Mono Display',monospace;
+    font-size:clamp(20px,5vw,30px);letter-spacing:.15em;
+    color:var(--gold-bright);text-shadow:0 0 20px rgba(244,210,122,.3);
+  }
+  .sub{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#8aa390;margin-top:6px}
+
+  .pcb{
+    position:relative;
+    width:100%;
+    max-width:720px;
+    aspect-ratio:560/700;
+    flex-shrink:0;
+    background:
+      radial-gradient(circle at 30% 20%,rgba(255,255,255,.04) 0%,transparent 40%),
+      linear-gradient(135deg,#0e1910 0%,#060a07 100%);
+    border-radius:18px;
+    box-shadow:
+      inset 0 0 0 2px #0a2014,
+      inset 0 0 50px rgba(0,0,0,.7),
+      0 30px 60px rgba(0,0,0,.8),
+      0 0 80px rgba(40,120,60,.12);
+    padding:0;overflow:hidden;
+  }
+  .pcb::before{
+    content:"";position:absolute;inset:0;
+    background-image:radial-gradient(circle at 2px 2px,rgba(255,255,255,.025) 1px,transparent 1px);
+    background-size:10px 10px;pointer-events:none;
+  }
+  .pcb::after{
+    content:"";position:absolute;top:14px;right:14px;
+    width:20px;height:20px;border-radius:50%;
+    background:radial-gradient(circle,#3a2810 30%,#0a0604 60%);
+    box-shadow:inset 0 0 3px rgba(0,0,0,.9),0 0 0 1.5px var(--gold);
+    z-index:2;
+  }
+  svg.board{width:100%;height:100%;display:block}
+
+  .trace{
+    stroke:var(--copper);stroke-width:6;fill:none;
+    filter:drop-shadow(0 0 1px rgba(212,168,75,.4));
+    stroke-linecap:round;stroke-linejoin:round;
+  }
+  .pad{fill:var(--pcb-dark);stroke:var(--gold);stroke-width:4;transition:all .2s ease}
+  .letter,.heading,.sublabel{
+    fill:var(--silk);font-family:'JetBrains Mono',monospace;
+    text-anchor:middle;dominant-baseline:middle;
+    paint-order:stroke;stroke:rgba(0,0,0,.3);stroke-width:.4;
+  }
+  .letter{font-size:32px;font-weight:800}
+  .sublabel{font-size:20px;font-weight:600;fill:#c8c4b0}
+  .heading{font-size:28px;letter-spacing:4px;font-weight:700}
+  .antenna{stroke:var(--silk);stroke-width:3;fill:none}
+  .pad.active-path{
+    fill:#3a2a0a;stroke:var(--gold-bright);
+    filter:drop-shadow(0 0 6px rgba(244,210,122,.7));
+  }
+  .pad.active-current{
+    fill:var(--led-on);stroke:var(--led-glow);stroke-width:2.8;
+    filter:drop-shadow(0 0 12px var(--led-on)) drop-shadow(0 0 24px var(--led-on));
+  }
+  .trace.active{
+    stroke:var(--gold-bright);stroke-width:8;
+    filter:drop-shadow(0 0 4px var(--gold-bright));
+  }
+
+  .controls{width:100%;max-width:720px;margin-top:18px;display:flex;flex-direction:column;gap:12px;padding:0 6px}
+  .display{
+    background:#080c08;border:1px solid #1f3a26;border-radius:8px;
+    padding:10px 12px;min-height:68px;
+    box-shadow:inset 0 2px 8px rgba(0,0,0,.6);
+  }
+  .display-label{font-size:9px;letter-spacing:.25em;color:#5a7a65;text-transform:uppercase;margin-bottom:4px}
+  .morse-out{
+    color:var(--gold-bright);font-size:18px;letter-spacing:.15em;
+    min-height:26px;word-break:break-all;
+    text-shadow:0 0 8px rgba(244,210,122,.4);
+  }
+  .text-out{
+    color:var(--led-on);font-size:15px;letter-spacing:.1em;
+    margin-top:4px;min-height:20px;font-weight:600;word-break:break-all;
+  }
+  .current{
+    display:inline-block;background:rgba(124,255,90,.15);
+    padding:0 4px;border-radius:2px;animation:blink 1s steps(2,end) infinite;
+  }
+  @keyframes blink{50%{opacity:.3}}
+
+  .key-wrap{display:flex;gap:10px;align-items:stretch}
+  .telegraph{
+    flex:1;position:relative;height:80px;
+    background:linear-gradient(180deg,#2a2520 0%,#0e0d0a 100%);
+    border:1px solid #3a3228;border-radius:10px;
+    cursor:pointer;user-select:none;-webkit-user-select:none;
+    -webkit-tap-highlight-color:transparent;overflow:hidden;touch-action:none;
+  }
+  .telegraph::before{
+    content:"";position:absolute;left:14px;top:50%;
+    transform:translateY(-50%);width:40px;height:40px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#4a4035 0%,#1a1612 70%);
+    box-shadow:inset 0 -2px 6px rgba(0,0,0,.8),0 2px 3px rgba(0,0,0,.5);
+  }
+  .telegraph-bar{
+    position:absolute;left:48px;top:50%;transform:translateY(-50%);
+    right:12px;height:13px;
+    background:linear-gradient(180deg,#c9a76a 0%,#8a6a35 50%,#5a4222 100%);
+    border-radius:3px;
+    box-shadow:inset 0 1px 0 rgba(255,220,160,.5),inset 0 -1px 2px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.6);
+    transition:transform .08s ease;
+  }
+  .telegraph-bar::after{
+    content:"";position:absolute;right:6px;top:50%;
+    transform:translateY(-50%);width:8px;height:8px;border-radius:50%;
+    background:radial-gradient(circle,#2a1810 30%,#000 70%);
+  }
+  .telegraph.pressed .telegraph-bar{transform:translateY(-30%) rotate(3deg)}
+  .telegraph.pressed{
+    background:linear-gradient(180deg,#3a3530 0%,#1a1814 100%);
+    box-shadow:inset 0 0 20px rgba(124,255,90,.2);
+  }
+  .telegraph-label{
+    position:absolute;bottom:5px;left:50%;transform:translateX(-50%);
+    font-size:9px;letter-spacing:.3em;color:#7a6a4a;text-transform:uppercase;pointer-events:none;
+  }
+  .btns{display:flex;flex-direction:column;gap:6px}
+  button.util{
+    background:#1a2a20;border:1px solid #2a4a35;color:var(--silk);
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+    letter-spacing:.15em;text-transform:uppercase;
+    padding:8px 12px;border-radius:6px;cursor:pointer;
+    transition:all .15s ease;min-width:62px;
+  }
+  button.util:hover{background:#234a30;border-color:var(--gold);color:var(--gold-bright)}
+  button.util:active{transform:scale(.96)}
+  .info{font-size:10px;color:#6a8a75;text-align:center;line-height:1.6;letter-spacing:.05em}
+  .info b{color:var(--gold-bright);font-weight:600}
+  kbd{background:#1a2a20;border:1px solid #2a4a35;border-radius:3px;padding:1px 6px;font-size:9px;color:var(--gold-bright)}
+  .slider-row{
+    display:flex;align-items:center;gap:10px;
+    font-size:10px;color:#8aa390;letter-spacing:.1em;
+  }
+  .slider-row input[type=range]{flex:1;accent-color:var(--gold-bright)}
+  .slider-row b{color:var(--gold-bright);min-width:48px;text-align:right}
+  footer{margin-top:18px;font-size:9px;letter-spacing:.3em;color:#3a5a45;text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>morse • decoder</h1>
+  <div class="sub">pcb tree — binary traversal</div>
+</header>
+
+<div class="pcb">
+  <!-- ViewBox: 400 wide, ~555 tall (aspect 3:4.15).
+       Layout below mirrors the photo precisely.
+       Columns from left to right (approx x):
+         col1=60, col2=120, col3=180 (T/N/D/B axis = center-left),
+         col4=225 (A), col5=275 (R rect), col6=335 (L/P/J column)
+         top row uses: 60, 115, 170, 240, 285, 330, 375
+  -->
+  <svg class="board" viewBox="0 0 560 700" preserveAspectRatio="xMidYMid meet">
+
+    <!-- ANTENNA sopra la top row (r1=55) -->
+    <g class="antenna">
+      <path d="M 237 25 L 250 8 L 263 25" />
+      <line x1="250" y1="8" x2="250" y2="35"/>
+      <line x1="242" y1="18" x2="258" y2="18"/>
+    </g>
+
+    <!-- TRACES -->
+    <g id="traces"></g>
+    <!-- PADS -->
+    <g id="pads"></g>
+    <!-- SUB-LABELS (Q, A, R under pads like in photo) -->
+    <g id="sublabels"></g>
+  </svg>
+</div>
+
+<div class="controls">
+  <div class="display">
+    <div class="display-label">› signal</div>
+    <div class="morse-out" id="morseOut"></div>
+    <div class="text-out" id="textOut"></div>
+  </div>
+
+  <div class="key-wrap">
+    <div class="telegraph" id="key" role="button" aria-label="Telegraph key">
+      <div class="telegraph-bar"></div>
+      <div class="telegraph-label">press • space</div>
+    </div>
+    <div class="btns">
+      <button class="util" id="spaceBtn">␣ SPC</button>
+      <button class="util" id="delBtn">⌫ DEL</button>
+      <button class="util" id="clearBtn">✕ CLR</button>
+    </div>
+  </div>
+
+  <div class="slider-row">
+    <span>speed</span>
+    <input type="range" id="speedSlider" min="150" max="500" step="10" value="280">
+    <b><span id="speedVal">280</span>ms</b>
+  </div>
+
+  <div class="info">
+    Tieni premuto il <b>tasto</b> o <kbd>SPACE</kbd>. Tap breve = <b>·</b>, lungo = <b>−</b>.<br>
+    <b>␣ SPC</b> = spazio parola · <b>⌫ DEL</b> = cancella ultimo · <b>✕ CLR</b> = reset
+  </div>
+</div>
+
+<footer>nux-style · rev 2.0</footer>
+
+<script>
+/* ================= LAYOUT FEDELE ALLA FOTO =================
+   GRIGLIA RIGOROSA:
+   Colonne X:    c1=60  c2=115  c3=170  c4=225  c5=280  c6=335  c7=378
+   Righe Y:     r1=85  r2=150  r3=215  r4=280  r5=345  r6=410  r7=475
+*/
+const CX={c1:50, c2:130, c3:210, c4:290, c5:370, c6:450, c7:520};
+const RY={r1:55, r2:155, r3:255, r4:355, r5:455, r6:555, r7:655};
+
+const N=[];
+function add(ch,path,x,y,shape,sub){
+  const n={id:N.length,ch,path,x,y,shape,sub:sub||null,el:null,shapeEl:null};
+  N.push(n); return n;
+}
+
+// ------ Shape rule: ultimo simbolo del path determina la forma
+//        . (dot) = circle,  - (dash) = rect ------
+
+// === ROW 1 — y=85 ===
+const O=add('O','---',   CX.c1, RY.r1,'rect');   // --- dash → rect
+const M=add('M','--',    CX.c2, RY.r1,'rect');   // -- dash → rect
+const T=add('T','-',     CX.c3, RY.r1,'rect');   // -  dash → rect
+const E=add('E','.',     CX.c4, RY.r1,'circle'); // .  dot  → circle
+const I=add('I','..',    CX.c5, RY.r1,'circle'); // .. dot  → circle
+const S=add('S','...',   CX.c6, RY.r1,'circle'); // ... dot → circle
+const H=add('H','....',  CX.c7, RY.r1,'circle'); // .... dot → circle
+
+// === ROW 2 — y=150 ===
+const Q=add('Q','--.-',  CX.c1, RY.r2,'rect','Q');   // --.- dash → rect
+const G=add('G','--.',   CX.c2, RY.r2,'circle');     // --. dot → circle
+const U=add('U','..-',   CX.c5, RY.r2,'rect');       // ..- dash → rect
+const V=add('V','...-',  CX.c6, RY.r2,'rect');       // ...- dash → rect
+
+// === ROW 3 — y=215 ===
+const Z=add('Z','--..',  CX.c2, RY.r3,'circle');     // --.. dot → circle
+const F=add('F','..-.',  CX.c5, RY.r3,'circle');     // ..-. dot → circle
+
+// === ROW 4 — y=280 ===
+const Y=add('Y','-.--',  CX.c1, RY.r4,'rect');       // -.-- dash → rect
+const K=add('K','-.-',   CX.c2, RY.r4,'rect');       // -.- dash → rect
+const N_=add('N','-.',   CX.c3, RY.r4,'circle');     // -. dot → circle (LED verde)
+const A=add('A','.-',    CX.c4, RY.r4,'rect','A');   // .- dash → rect
+const R=add('R','.-.',   CX.c5, RY.r4,'circle','R'); // .-. dot → circle
+const L=add('L','.-..',  CX.c6, RY.r4,'circle');     // .-.. dot → circle
+
+// === ROW 5 — y=345 ===
+const C=add('C','-.-.',  CX.c2, RY.r5,'circle');     // -.-. dot → circle
+
+// === ROW 6 — y=410 ===
+const X=add('X','-..-',  CX.c2, RY.r6,'rect');       // -..- dash → rect
+const D=add('D','-..',   CX.c3, RY.r6,'circle','D'); // -.. dot → circle
+const W=add('W','.--',   CX.c4, RY.r6,'rect','W');   // .-- dash → rect
+const P=add('P','.--.',  CX.c5, RY.r6,'circle');     // .--. dot → circle
+
+// === ROW 7 — y=475 ===
+const B=add('B','-...',  CX.c3, RY.r7,'circle');     // -... dot → circle
+const J=add('J','.---',  CX.c5, RY.r7,'rect');       // .--- dash → rect
+
+
+// ================= TRACES (orthogonal) =================
+const segsSvg=document.getElementById('traces');
+const padsSvg=document.getElementById('pads');
+const subSvg=document.getElementById('sublabels');
+
+function seg(a,b,routing){
+  const el=document.createElementNS('http://www.w3.org/2000/svg','path');
+  let d;
+  if(routing==='H'){ d=`M${a.x},${a.y} L${b.x},${b.y}`; }                       // horizontal (or straight)
+  else if(routing==='V'){ d=`M${a.x},${a.y} L${b.x},${b.y}`; }                  // vertical
+  else if(routing==='HV'){ d=`M${a.x},${a.y} L${b.x},${a.y} L${b.x},${b.y}`; } // horizontal then vertical
+  else if(routing==='VH'){ d=`M${a.x},${a.y} L${a.x},${b.y} L${b.x},${b.y}`; } // vertical then horizontal
+  else d=`M${a.x},${a.y} L${b.x},${b.y}`;
+  el.setAttribute('d',d);
+  el.setAttribute('class','trace');
+  el.setAttribute('data-trace',b.path);
+  segsSvg.appendChild(el);
+}
+
+// Top horizontal row - lato sinistro (O-M-T)
+seg(O,M,'H'); seg(M,T,'H');
+// Top row - lato destro (E-I-S-H)
+seg(E,I,'H'); seg(I,S,'H'); seg(S,H,'H');
+
+// M branch: Q (giù-sinistra via VH), G (giù dritto)
+seg(M,Q,'VH');
+seg(M,G,'V');
+seg(G,Z,'V');
+
+// T branch: N dritto sotto (stessa colonna c3)
+seg(T,N_,'V');
+// N branch: K a sinistra (stessa riga), D giù (stessa colonna)
+seg(N_,K,'H');
+seg(N_,D,'V');
+// K branch: Y a sinistra (stessa riga), C giù (stessa colonna)
+seg(K,Y,'H');
+seg(K,C,'V');
+// D branch: X a sinistra (stessa riga), B giù (stessa colonna)
+seg(D,X,'H');
+seg(D,B,'V');
+
+// E branch: A giù (stessa colonna c4)
+seg(E,A,'V');
+// A branch: R a destra (stessa riga), W giù (stessa colonna)
+seg(A,R,'H');
+seg(R,L,'H');
+seg(A,W,'V');
+// W branch: P a destra, J giù da P
+seg(W,P,'H');
+seg(P,J,'V');
+
+// I branch: U dritto sotto (stessa colonna c5)
+seg(I,U,'V');
+// U branch: V a destra (stessa riga), F giù (stessa colonna)
+seg(U,V,'H');
+seg(U,F,'V');
+
+// ================= PADS =================
+function renderPad(n){
+  const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('data-path',n.path);
+  let shape;
+  if(n.shape==='rect'){
+    shape=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    shape.setAttribute('x',n.x-32);
+    shape.setAttribute('y',n.y-24);
+    shape.setAttribute('width',64);
+    shape.setAttribute('height',48);
+    shape.setAttribute('rx',5);
+  } else {
+    shape=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    shape.setAttribute('cx',n.x);
+    shape.setAttribute('cy',n.y);
+    shape.setAttribute('r',28);
+  }
+  shape.setAttribute('class','pad');
+  g.appendChild(shape);
+  const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+  t.setAttribute('x',n.x); t.setAttribute('y',n.y+1);
+  t.setAttribute('class','letter'); t.textContent=n.ch;
+  g.appendChild(t);
+  padsSvg.appendChild(g);
+  n.el=g; n.shapeEl=shape;
+
+  // sublabel under pad (like Q, A, R, D, W in the photo)
+  if(n.sub){
+    const sl=document.createElementNS('http://www.w3.org/2000/svg','text');
+    sl.setAttribute('x',n.x);
+    sl.setAttribute('y',n.y+50);
+    sl.setAttribute('class','sublabel');
+    sl.textContent=n.sub;
+    subSvg.appendChild(sl);
+  }
+}
+N.forEach(renderPad);
+
+// ================= STATE =================
+const STATE={
+  dotMs:280,     // più lento di default
+  pressStart:0, currentSig:'', output:'', fullMorse:'',
+  letterTimer:null
+};
+const morseOut=document.getElementById('morseOut');
+const textOut=document.getElementById('textOut');
+const speedSlider=document.getElementById('speedSlider');
+const speedVal=document.getElementById('speedVal');
+
+speedSlider.addEventListener('input',()=>{
+  STATE.dotMs=parseInt(speedSlider.value);
+  speedVal.textContent=STATE.dotMs;
+});
+
+function findByPath(p){return N.find(n=>n.path===p)||null}
+function clearHL(){
+  document.querySelectorAll('.pad.active-path,.pad.active-current').forEach(e=>e.classList.remove('active-path','active-current'));
+  document.querySelectorAll('.trace.active').forEach(e=>e.classList.remove('active'));
+}
+function highlightPath(path){
+  clearHL();
+  let acc='';
+  for(let i=0;i<path.length;i++){
+    acc+=path[i];
+    const n=findByPath(acc);
+    if(n){
+      const cls=(i===path.length-1)?'active-current':'active-path';
+      n.shapeEl.classList.add(cls);
+    }
+    const tr=document.querySelector(`[data-trace="${CSS.escape(acc)}"]`);
+    if(tr) tr.classList.add('active');
+  }
+}
+function updateDisplay(){
+  morseOut.innerHTML = STATE.fullMorse + '<span class="current">'+STATE.currentSig+'</span>';
+  textOut.textContent = STATE.output;
+}
+function commitLetter(){
+  if(!STATE.currentSig) return;
+  const n=findByPath(STATE.currentSig);
+  const ch=(n&&n.ch)?n.ch:'?';
+  STATE.output+=ch;
+  STATE.fullMorse+=STATE.currentSig+' ';
+  STATE.currentSig='';
+  clearHL(); updateDisplay();
+}
+function commitWord(){
+  if(STATE.currentSig) commitLetter();
+  if(STATE.output.length && !STATE.output.endsWith(' ')){
+    STATE.output+=' '; STATE.fullMorse+='/ '; updateDisplay();
+  }
+}
+
+// audio
+let audioCtx=null,osc=null,gain=null;
+function toneStart(){
+  try{
+    if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    osc=audioCtx.createOscillator(); gain=audioCtx.createGain();
+    osc.type='sine'; osc.frequency.value=650; gain.gain.value=0;
+    osc.connect(gain).connect(audioCtx.destination); osc.start();
+    gain.gain.linearRampToValueAtTime(0.22,audioCtx.currentTime+0.01);
+  }catch(e){}
+}
+function toneStop(){
+  if(!osc||!gain||!audioCtx) return;
+  gain.gain.linearRampToValueAtTime(0,audioCtx.currentTime+0.02);
+  osc.stop(audioCtx.currentTime+0.05);
+  osc=null; gain=null;
+}
+
+const keyEl=document.getElementById('key');
+let pressed=false;
+function onPress(){
+  if(pressed) return;
+  pressed=true; keyEl.classList.add('pressed');
+  STATE.pressStart=performance.now();
+  clearTimeout(STATE.letterTimer);
+  toneStart();
+}
+function onRelease(){
+  if(!pressed) return;
+  pressed=false; keyEl.classList.remove('pressed'); toneStop();
+  const dur=performance.now()-STATE.pressStart;
+  STATE.currentSig += (dur<STATE.dotMs*2)?'.':'-';
+  if(findByPath(STATE.currentSig)) highlightPath(STATE.currentSig);
+  else clearHL();
+  updateDisplay();
+  STATE.letterTimer=setTimeout(commitLetter,STATE.dotMs*5);
+  // Spazio tra parole SOLO con pulsante SPC, non più automatico
+}
+
+keyEl.addEventListener('mousedown',e=>{e.preventDefault();onPress();});
+window.addEventListener('mouseup',onRelease);
+keyEl.addEventListener('touchstart',e=>{e.preventDefault();onPress();},{passive:false});
+keyEl.addEventListener('touchend',e=>{e.preventDefault();onRelease();},{passive:false});
+keyEl.addEventListener('touchcancel',onRelease);
+window.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat){e.preventDefault();onPress();}});
+window.addEventListener('keyup',e=>{if(e.code==='Space'){e.preventDefault();onRelease();}});
+
+document.getElementById('spaceBtn').addEventListener('click',()=>{
+  clearTimeout(STATE.letterTimer); commitWord();
+});
+document.getElementById('delBtn').addEventListener('click',()=>{
+  clearTimeout(STATE.letterTimer);
+  // Se sto ancora componendo una lettera, azzera la composizione corrente
+  if(STATE.currentSig){
+    STATE.currentSig = '';
+    clearHL();
+    updateDisplay();
+    return;
+  }
+  // Altrimenti cancella l'ultimo carattere dell'output
+  if(STATE.output.length){
+    const lastCh = STATE.output.slice(-1);
+    STATE.output = STATE.output.slice(0,-1);
+    if(lastCh === ' '){
+      STATE.fullMorse = STATE.fullMorse.replace(/\/ $/,'');
+    } else {
+      STATE.fullMorse = STATE.fullMorse.replace(/[.\-]+ $/,'');
+    }
+    updateDisplay();
+  }
+});
+document.getElementById('clearBtn').addEventListener('click',()=>{
+  clearTimeout(STATE.letterTimer);
+  STATE.currentSig=''; STATE.output=''; STATE.fullMorse='';
+  clearHL(); updateDisplay();
+});
+
+updateDisplay();
+</script>
+</body>
+</html>
