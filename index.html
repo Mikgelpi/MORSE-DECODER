@@ -180,6 +180,15 @@
   .slider-row input[type=range]{flex:1;accent-color:var(--gold-bright)}
   .slider-row b{color:var(--gold-bright);min-width:48px;text-align:right}
   footer{margin-top:10px;font-size:8px;letter-spacing:.3em;color:#3a5a45;text-transform:uppercase}
+
+  #visit-counter {
+    font-size: 8px;
+    color: #3a5a45;
+    margin-bottom: 4px;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+  }
+
 </style>
 </head>
 <body>
@@ -253,6 +262,7 @@
   </div>
 </div>
 
+<div id="visit-counter">VISITS: <span id="count">...</span></div>
 <footer>nux-style · rev 2.0</footer>
 
 <script>
@@ -553,6 +563,26 @@ document.getElementById('clearBtn').addEventListener('click',()=>{
   clearHL(); updateDisplay();
 });
 
+// Funzione per il contatore visite (usa Cloudflare Worker)
+async function updateCounter() {
+  const counterEl = document.getElementById('count');
+  const workerUrl = 'https://morse-counter.gelpi-idealsoft.workers.dev/morse-decoder';
+  
+  try {
+    // Leggi il contatore (GET)
+    const getRes = await fetch(workerUrl);
+    const data = await getRes.json();
+    counterEl.textContent = data.count;
+    
+    // Incrementa (POST)
+    await fetch(workerUrl, { method: 'POST' });
+  } catch (error) {
+    console.log("Contatore non disponibile:", error.message);
+    counterEl.textContent = "—";
+  }
+}
+
+updateCounter();
 updateDisplay();
 </script>
 </body>
